@@ -1,0 +1,59 @@
+const { signup, login } = require('./auth.service');
+
+// Signup controller
+const signupController = async (req, res) => {
+  try {
+    const { email, password, firstName, lastName } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required',
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long',
+      });
+    }
+
+    const result = await signup(email, password, firstName, lastName);
+    return res.status(201).json(result);
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Login controller
+const loginController = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required',
+      });
+    }
+
+    const result = await login(email, password);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+module.exports = {
+  signupController,
+  loginController,
+};
