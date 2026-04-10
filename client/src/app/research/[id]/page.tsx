@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { getResearchById, getResearchComments, addResearchComment, addResearchRating } from "@/services/research";
+import { API_URL } from "@/services/api";
 import { getToken, getUser } from "@/lib/auth";
 
-export default function ResearchDetailPage({ params }: { params: { id: string } }) {
+export default function ResearchDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
   const [research, setResearch] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,15 +27,19 @@ export default function ResearchDetailPage({ params }: { params: { id: string } 
     setUser(userData);
     fetchResearch();
     fetchComments();
-  }, [params.id]);
+  }, [id]);
 
   const fetchResearch = async () => {
     setLoading(true);
     setError("");
     try {
-      const data = await getResearchById(params.id);
-      setResearch(data);
-      setRating(data.average_rating || 0);
+      const data = await getResearchById(id);
+      if (data) {
+        setResearch(data);
+        setRating(data.average_rating || 0);
+      } else {
+        setResearch(null);
+      }
     } catch (err: any) {
       setError("Failed to load research paper. Please refresh the page.");
       console.error("Error fetching research:", err);
@@ -44,8 +51,8 @@ export default function ResearchDetailPage({ params }: { params: { id: string } 
   const fetchComments = async () => {
     setCommentsLoading(true);
     try {
-      const data = await getResearchComments(params.id);
-      setComments(data);
+      const data = await getResearchComments(id);
+      setComments(data || []);
     } catch (err: any) {
       console.error("Error fetching comments:", err);
     } finally {
@@ -70,7 +77,7 @@ export default function ResearchDetailPage({ params }: { params: { id: string } 
     setSubmitting(true);
     try {
       const token = getToken();
-      const result = await addResearchComment(params.id, commentText.trim(), token!);
+      const result = await addResearchComment(id, commentText.trim(), token!);
 
       if (result) {
         setCommentText("");
@@ -97,7 +104,7 @@ export default function ResearchDetailPage({ params }: { params: { id: string } 
     setUserRating(value);
     try {
       const token = getToken();
-      const result = await addResearchRating(params.id, value, token!);
+      const result = await addResearchRating(id, value, token!);
 
       if (result) {
         // Refresh the research to get updated average rating
@@ -115,7 +122,8 @@ export default function ResearchDetailPage({ params }: { params: { id: string } 
     if (research?.file_url) {
       try {
         const link = document.createElement('a');
-        link.href = research.file_url;
+        const fullUrl = research.file_url.startsWith('http') ? research.file_url : `${API_URL}${research.file_url}`;
+        link.href = fullUrl;
         link.download = `${research.title}.pdf`;
         link.target = '_blank';
         link.click();

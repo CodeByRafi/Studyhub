@@ -32,15 +32,6 @@ export default function LoginPage() {
     }
   }, []);
 
-  // Load remembered email on mount
-  useEffect(() => {
-    const rememberedEmail = localStorage.getItem("rememberEmail");
-    if (rememberedEmail) {
-      setEmail(rememberedEmail);
-      setRemember(true);
-    }
-  }, []);
-
   const isFormValid = useMemo(() => email.trim().length > 0 && password.length >= 6, [email, password]);
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {

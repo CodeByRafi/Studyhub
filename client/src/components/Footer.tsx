@@ -1,11 +1,18 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getUser } from "@/lib/auth";
 
 export default function Footer() {
-  const user = getUser();
+  const [isClient, setIsClient] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    setIsClient(true);
+    setUser(getUser());
+  }, []);
 
   const quickLinks = [
     { label: "Study", href: "/study" },
@@ -24,7 +31,7 @@ export default function Footer() {
     { label: "Tuition Jobs", href: "/jobs" },
   ];
 
-  const accountLinks = user
+  const accountLinks = (isClient && user)
     ? [
         { label: "Dashboard", href: "/dashboard" },
         { label: "Profile", href: "/dashboard" },

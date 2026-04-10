@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { getUser, logout } from "@/lib/auth";
+import { useState, useEffect } from "react";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -11,11 +12,21 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const user = getUser();
+  const [isClient, setIsClient] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
-  if (!user) {
-    router.push("/login");
-    return null;
+  useEffect(() => {
+    setIsClient(true);
+    const currentUser = getUser();
+    setUser(currentUser);
+    
+    if (!currentUser) {
+      router.push("/login");
+    }
+  }, [router]);
+
+  if (!isClient || !user) {
+    return null; // Return nothing while checking auth or redirecting
   }
 
   const handleLogout = () => {

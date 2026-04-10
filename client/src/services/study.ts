@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5001';
 
 // Department suggestions with course suggestions
 export const DEPARTMENT_SUGGESTIONS = [
@@ -156,11 +156,13 @@ export async function uploadNote(title: string, courseId: string, file: File, to
   }
 }
 
-export async function getNotes(courseId?: string) {
+export async function getNotes(params: { department?: string; course?: string; searchQuery?: string } = {}) {
   try {
-    const url = courseId 
-      ? `${API_URL}/api/study/notes?course_id=${courseId}`
-      : `${API_URL}/api/study/notes`;
+    const cleanParams = Object.fromEntries(
+      Object.entries(params).filter(([, v]) => v != null && v !== '')
+    );
+    const query = new URLSearchParams(cleanParams as Record<string, string>).toString();
+    const url = `${API_URL}/api/study/notes${query ? `?${query}` : ''}`;
 
     const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch notes');
@@ -195,8 +197,8 @@ export async function addCourse(departmentId: string, courseName: string, token?
       body: JSON.stringify({ department_id: departmentId, name: courseName }),
     });
 
-    if (!response.ok) throw new Error('Failed to add course');
     const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Failed to add course');
     return data.success ? data.data : null;
   } catch (error) {
     console.error('Error adding course:', error);
@@ -292,11 +294,13 @@ export async function uploadQuestion(title: string, courseId: string, file: File
   }
 }
 
-export async function getQuestions(courseId?: string) {
+export async function getQuestions(params: { department?: string; course?: string; searchQuery?: string } = {}) {
   try {
-    const url = courseId 
-      ? `${API_URL}/api/study/questions?course_id=${courseId}`
-      : `${API_URL}/api/study/questions`;
+    const cleanParams = Object.fromEntries(
+      Object.entries(params).filter(([, v]) => v != null && v !== '')
+    );
+    const query = new URLSearchParams(cleanParams as Record<string, string>).toString();
+    const url = `${API_URL}/api/study/questions${query ? `?${query}` : ''}`;
 
     const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch questions');

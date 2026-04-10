@@ -3,25 +3,19 @@ const { uploadNote, getNotes, getNoteById } = require('./notes.service');
 const uploadNoteController = async (req, res) => {
   try {
     const { title, course_id } = req.body;
-    const userId = req.userId; // Should be set by auth middleware
+    const userId = req.userId;
     const file = req.file;
 
     if (!title || !course_id || !file) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: title, course_id, file',
-      });
-    }
-
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Unauthorized: user not authenticated',
+        message: 'Missing required fields: title, course_id, or file',
       });
     }
 
     const fileUrl = `/uploads/${file.filename}`;
-    const note = await uploadNote(title, fileUrl, userId, course_id);
+    // Explicitly parse course_id as integer to avoid DB type mismatches
+    const note = await uploadNote(title, fileUrl, userId, parseInt(course_id, 10));
 
     res.status(201).json({
       success: true,
@@ -29,28 +23,33 @@ const uploadNoteController = async (req, res) => {
       message: 'Note uploaded successfully',
     });
   } catch (error) {
+    console.error('Upload Note Error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error uploading note',
-      error: error.message,
+      message: error.message || 'Error uploading note',
     });
   }
 };
 
 const getNotesController = async (req, res) => {
   try {
-    const { course_id } = req.query;
-    const notes = await getNotes(course_id);
+    const { department, course, searchQuery } = req.query;
+    // Pass filters to service layer
+    const notes = await getNotes({ 
+      department: department ? (isNaN(Number(department)) ? department : parseInt(department, 10)) : undefined, 
+      course: course ? (isNaN(Number(course)) ? course : parseInt(course, 10)) : undefined, 
+      searchQuery 
+    });
 
     res.status(200).json({
       success: true,
       data: notes,
     });
   } catch (error) {
+    console.error('Get Notes Error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching notes',
-      error: error.message,
+      message: error.message || 'Error fetching notes',
     });
   }
 };

@@ -1,4 +1,4 @@
-const { getDepartments, getCoursesByDepartment } = require('./study.service');
+const { getDepartments, getCoursesByDepartment, getNotes, createCourse } = require('./study.service');
 
 const getDepartmentsController = async (req, res) => {
   try {
@@ -42,7 +42,45 @@ const getCoursesController = async (req, res) => {
   }
 };
 
+const addCourseController = async (req, res) => {
+  try {
+    const { department_id, name } = req.body;
+
+    if (!department_id || !name) {
+      return res.status(400).json({
+        success: false,
+        message: 'department_id and name are required',
+      });
+    }
+
+    // Explicitly parse department_id as integer
+    const course = await createCourse(parseInt(department_id, 10), name);
+    res.status(201).json({
+      success: true,
+      data: course,
+    });
+  } catch (error) {
+    console.error('Add Course Controller Error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error adding course',
+    });
+  }
+};
+
+const getNotesController = async (req, res) => {
+  try {
+    const { department, course, searchQuery } = req.query;
+    const notes = await getNotes({ department, course, searchQuery });
+    res.status(200).json({ success: true, data: notes });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching notes', error: error.message });
+  }
+};
+
 module.exports = {
   getDepartmentsController,
   getCoursesController,
+  addCourseController,
+  getNotesController,
 };

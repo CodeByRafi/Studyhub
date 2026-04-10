@@ -56,6 +56,9 @@ app.use('/api/study', studyRoutes);
 app.use('/api/research', researchRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/blog', blogRoutes);
+app.use('/api/networking', require('./modules/networking/networking.routes'));
+app.use('/api/mentoring', require('./modules/mentoring/mentoring.routes'));
+
 
 // Basic route
 app.get('/', (req, res) => {

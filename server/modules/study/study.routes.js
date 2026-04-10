@@ -1,7 +1,7 @@
 const express = require('express');
 const upload = require('../../config/multer');
 const { requireAuth } = require('../../middleware/authMiddleware');
-const { getDepartmentsController, getCoursesController } = require('./study.controller');
+const { getDepartmentsController, getCoursesController, addCourseController } = require('./study.controller');
 const { uploadNoteController, getNotesController, getNoteController } = require('./notes.controller');
 const { addCommentController, getCommentsController, addRatingController } = require('./comments-ratings.controller');
 const {
@@ -23,6 +23,9 @@ router.get('/departments', getDepartmentsController);
 
 // GET /api/study/courses?department_id=ID
 router.get('/courses', getCoursesController);
+
+// POST /api/study/courses
+router.post('/courses', requireAuth, addCourseController);
 
 // POST /api/study/notes/upload
 router.post('/notes/upload', requireAuth, upload.single('file'), uploadNoteController);

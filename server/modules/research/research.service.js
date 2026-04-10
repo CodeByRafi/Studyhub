@@ -1,17 +1,19 @@
 const pool = require('../../config/db');
 
-const uploadResearch = async (title, abstract, fileUrl, userId, courseId = null) => {
+const uploadResearch = async (title, abstract, fileUrl, userId, departmentName, courseName) => {
   try {
-    console.log('Research service debug:', { title, abstract: abstract?.substring(0, 50), fileUrl, userId, courseId });
+    // Try to parse courseName as courseId if it's numeric, otherwise keep it as null
+    const courseId = isNaN(parseInt(courseName, 10)) ? null : parseInt(courseName, 10);
+    
+    console.log('Research service debug:', { title, courseId, departmentName, courseName, userId });
     
     const query = `
-      INSERT INTO research (title, abstract, file_url, user_id, course_id)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO research (title, abstract, file_url, user_id, course_id, department_name, course_name)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *;
     `;
-    const values = [title, abstract, fileUrl, userId, courseId];
+    const values = [title, abstract, fileUrl, userId, courseId, departmentName, courseName];
     const result = await pool.query(query, values);
-    console.log('Research inserted successfully:', result.rows[0]);
     return result.rows[0];
   } catch (error) {
     console.error('Research service error:', error);

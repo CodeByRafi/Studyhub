@@ -3,7 +3,7 @@ const { signup, login } = require('./auth.service');
 // Signup controller
 const signupController = async (req, res) => {
   try {
-    const { email, password, firstName, lastName } = req.body;
+    const { email, password, firstName, lastName, departmentId } = req.body;
 
     // Validate input
     if (!email || !password) {
@@ -20,7 +20,7 @@ const signupController = async (req, res) => {
       });
     }
 
-    const result = await signup(email, password, firstName, lastName);
+    const result = await signup(email, password, firstName, lastName, departmentId);
     return res.status(201).json(result);
   } catch (error) {
     return res.status(400).json({

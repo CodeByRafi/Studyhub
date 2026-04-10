@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { logout, getUser } from "@/lib/auth";
+import { useState, useEffect } from "react";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -11,7 +12,13 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const user = getUser();
+  const [isClient, setIsClient] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    setIsClient(true);
+    setUser(getUser());
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -62,8 +69,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <div className="p-4 absolute bottom-6 left-4 right-4">
           <div className="mb-4 pb-4 border-t border-white/20 pt-4">
             <p className="text-xs text-white/60 mb-2">Logged in as</p>
-            <p className="text-sm font-semibold truncate">{user?.first_name} {user?.last_name}</p>
-            <p className="text-xs text-white/50 truncate">{user?.email}</p>
+            {isClient && user ? (
+              <>
+                <p className="text-sm font-semibold truncate">{user.first_name} {user.last_name}</p>
+                <p className="text-xs text-white/50 truncate">{user.email}</p>
+              </>
+            ) : (
+              <>
+                <div className="h-5 bg-white/10 rounded w-2/3 mb-1 animate-pulse"></div>
+                <div className="h-4 bg-white/10 rounded w-full animate-pulse"></div>
+              </>
+            )}
           </div>
           <button
             onClick={handleLogout}

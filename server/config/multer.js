@@ -29,7 +29,7 @@ const upload = multer({
       cb(new Error('Only PDF, DOC, and DOCX files are allowed.'));
     }
   },
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
 });
 
 module.exports = upload;

@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { getNoteById, getComments, addComment, addRating } from "@/services/study";
+import { API_URL } from "@/services/api";
 import { getToken, getUser } from "@/lib/auth";
 
-export default function NoteDetailPage({ params }: { params: { id: string } }) {
+export default function NoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
   const [note, setNote] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,15 +27,19 @@ export default function NoteDetailPage({ params }: { params: { id: string } }) {
     setUser(userData);
     fetchNote();
     fetchComments();
-  }, [params.id]);
+  }, [id]);
 
   const fetchNote = async () => {
     setLoading(true);
     setError("");
     try {
-      const data = await getNoteById(params.id);
-      setNote(data);
-      setRating(data.average_rating || 0);
+      const data = await getNoteById(id);
+      if (data) {
+        setNote(data);
+        setRating(data.average_rating || 0);
+      } else {
+        setNote(null);
+      }
     } catch (err: any) {
       setError("Failed to load note. Please refresh the page.");
       console.error("Error fetching note:", err);
@@ -44,8 +51,8 @@ export default function NoteDetailPage({ params }: { params: { id: string } }) {
   const fetchComments = async () => {
     setCommentsLoading(true);
     try {
-      const data = await getComments(params.id);
-      setComments(data);
+      const data = await getComments(id);
+      setComments(data || []);
     } catch (err: any) {
       console.error("Error fetching comments:", err);
     } finally {
@@ -70,7 +77,7 @@ export default function NoteDetailPage({ params }: { params: { id: string } }) {
     setSubmitting(true);
     try {
       const token = getToken();
-      const result = await addComment(params.id, commentText.trim(), token!);
+      const result = await addComment(id, commentText.trim(), token!);
 
       if (result) {
         setCommentText("");
@@ -97,7 +104,7 @@ export default function NoteDetailPage({ params }: { params: { id: string } }) {
     setUserRating(value);
     try {
       const token = getToken();
-      const result = await addRating(params.id, value, token!);
+      const result = await addRating(id, value, token!);
 
       if (result) {
         // Refresh the note to get updated average rating
@@ -115,7 +122,8 @@ export default function NoteDetailPage({ params }: { params: { id: string } }) {
     if (note?.file_url) {
       try {
         const link = document.createElement('a');
-        link.href = note.file_url;
+        const fullUrl = note.file_url.startsWith('http') ? note.file_url : `${API_URL}${note.file_url}`;
+        link.href = fullUrl;
         link.download = `${note.title}.pdf`;
         link.target = '_blank';
         link.click();

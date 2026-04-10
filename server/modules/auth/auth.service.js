@@ -19,7 +19,7 @@ const generateToken = (userId) => {
 };
 
 // Signup service
-const signup = async (email, password, firstName, lastName) => {
+const signup = async (email, password, firstName, lastName, departmentId) => {
   try {
     // Check if user already exists
     const userExists = await pool.query(
@@ -36,8 +36,8 @@ const signup = async (email, password, firstName, lastName) => {
 
     // Insert new user
     const result = await pool.query(
-      'INSERT INTO users (email, password, first_name, last_name) VALUES ($1, $2, $3, $4) RETURNING id, email, first_name, last_name',
-      [email, hashedPassword, firstName, lastName]
+      'INSERT INTO users (email, password, first_name, last_name, department_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, first_name, last_name',
+      [email, hashedPassword, firstName, lastName, departmentId]
     );
 
     const user = result.rows[0];

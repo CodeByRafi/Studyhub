@@ -10,13 +10,15 @@ const {
 const uploadQuestionController = async (req, res) => {
   try {
     const { title, course_id } = req.body;
-    const userId = req.userId; // Should be set by auth middleware
+    const userId = req.userId;
     const file = req.file;
+
+    console.log('Question upload request:', { title, course_id, userId, file: file ? file.filename : 'missing' });
 
     if (!title || !course_id || !file) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: title, course_id, file',
+        message: 'Missing required fields: title, course_id, or file',
       });
     }
 
@@ -28,7 +30,16 @@ const uploadQuestionController = async (req, res) => {
     }
 
     const fileUrl = `/uploads/${file.filename}`;
-    const question = await uploadQuestion(title, fileUrl, userId, course_id);
+    const parsedCourseId = parseInt(course_id, 10);
+    
+    if (isNaN(parsedCourseId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid course_id: must be a number',
+      });
+    }
+
+    const question = await uploadQuestion(title, fileUrl, userId, parsedCourseId);
 
     res.status(201).json({
       success: true,
@@ -36,28 +47,43 @@ const uploadQuestionController = async (req, res) => {
       message: 'Question uploaded successfully',
     });
   } catch (error) {
+    console.error('Upload Question Controller Error:', error);
+    
+    // Extract specific database error if possible
+    let errorMsg = error.message;
+    if (error.code === '23502') {
+      errorMsg = `Column ${error.column} cannot be empty.`;
+    } else if (error.code === '23503') {
+      errorMsg = 'Foreign key violation: linked record (e.g., course or user) does not exist.';
+    } else if (error.code === '23505') {
+      errorMsg = 'This record already exists (Unique constraint violation).';
+    }
+
     res.status(500).json({
       success: false,
-      message: 'Error uploading question',
-      error: error.message,
+      message: 'Error uploading question: ' + errorMsg,
     });
   }
 };
 
 const getQuestionsController = async (req, res) => {
   try {
-    const { course_id } = req.query;
-    const questions = await getQuestions(course_id);
+    const { department, course, searchQuery } = req.query;
+    const questions = await getQuestions({ 
+      department: department ? (isNaN(Number(department)) ? department : parseInt(department, 10)) : undefined, 
+      course: course ? (isNaN(Number(course)) ? course : parseInt(course, 10)) : undefined, 
+      searchQuery 
+    });
 
     res.status(200).json({
       success: true,
       data: questions,
     });
   } catch (error) {
+    console.error('Get Questions Error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching questions',
-      error: error.message,
+      message: error.message || 'Error fetching questions',
     });
   }
 };

@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getResearch, uploadResearch } from "@/services/research";
-import { recordVisit } from "@/services/api";
+import { recordVisit, API_URL } from "@/services/api";
 import { getToken, getUser } from "@/lib/auth";
 import AppLayout from "@/components/AppLayout";
 
 export default function ResearchPage() {
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [research, setResearch] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,8 +25,8 @@ export default function ResearchPage() {
   const [showUploadForm, setShowUploadForm] = useState(false);
 
   useEffect(() => {
-    const userData = getUser();
-    setUser(userData);
+    setIsClient(true);
+    setUser(getUser());
     fetchResearch();
     recordVisit("research");
   }, []);
@@ -115,7 +116,8 @@ export default function ResearchPage() {
     if (paper.file_url) {
       try {
         const link = document.createElement('a');
-        link.href = paper.file_url;
+        const fullUrl = paper.file_url.startsWith('http') ? paper.file_url : `${API_URL}${paper.file_url}`;
+        link.href = fullUrl;
         link.download = `${paper.title}.pdf`;
         link.target = '_blank';
         link.click();
@@ -391,6 +393,10 @@ export default function ResearchPage() {
       </main>
     </div>
   );
+
+  if (!isClient) {
+    return content;
+  }
 
   if (user) {
     return <AppLayout>{content}</AppLayout>;

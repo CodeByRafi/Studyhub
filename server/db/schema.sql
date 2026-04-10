@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255) NOT NULL,
   first_name VARCHAR(100),
   last_name VARCHAR(100),
+  department_id INT REFERENCES departments(id) ON DELETE SET NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -183,6 +184,27 @@ CREATE TABLE IF NOT EXISTS blog_posts (
 
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+-- Networking profiles table
+CREATE TABLE IF NOT EXISTS networking_profiles (
+  id SERIAL PRIMARY KEY,
+  user_id INT UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  profile_photo_url VARCHAR(500),
+  headline VARCHAR(255),
+  current_status VARCHAR(100),
+  bio TEXT,
+  skills TEXT[],
+  current_company VARCHAR(255),
+  role_designation VARCHAR(255),
+  linkedin_url VARCHAR(500),
+  github_url VARCHAR(500),
+  portfolio_url VARCHAR(500),
+  graduation_year INT,
+  open_to TEXT[],
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_notes_user_id ON notes(user_id);
 CREATE INDEX IF NOT EXISTS idx_notes_course_id ON notes(course_id);
 CREATE INDEX IF NOT EXISTS idx_comments_user_id ON comments(user_id);
@@ -206,4 +228,24 @@ CREATE INDEX IF NOT EXISTS idx_job_applications_user_id ON job_applications(user
 CREATE INDEX IF NOT EXISTS idx_job_applications_job_id ON job_applications(job_id);
 CREATE INDEX IF NOT EXISTS idx_visits_created_at ON visits(created_at);
 CREATE INDEX IF NOT EXISTS idx_blog_posts_author_id ON blog_posts(author_id);
-CREATE INDEX IF NOT EXISTS idx_blog_posts_created_at ON blog_posts(created_at);
+-- Mentor profiles table
+CREATE TABLE IF NOT EXISTS mentor_profiles (
+  id SERIAL PRIMARY KEY,
+  user_id INT UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  profile_photo_url VARCHAR(500),
+  headline VARCHAR(255),
+  current_status VARCHAR(100),
+  bio TEXT,
+  skills TEXT[],
+  expertise TEXT[],
+  whatsapp_number VARCHAR(20),
+  linkedin_url VARCHAR(500),
+  github_url VARCHAR(500),
+  portfolio_url VARCHAR(500),
+  open_to TEXT[],
+  availability_text TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_mentor_profiles_user_id ON mentor_profiles(user_id);
