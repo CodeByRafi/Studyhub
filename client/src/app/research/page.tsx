@@ -18,6 +18,8 @@ export default function ResearchPage() {
   const [uploadError, setUploadError] = useState("");
   const [title, setTitle] = useState("");
   const [abstract, setAbstract] = useState("");
+  const [department, setDepartment] = useState("");
+  const [course, setCourse] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
 
@@ -63,25 +65,28 @@ export default function ResearchPage() {
     }
 
     // Validate file type
-    if (file.type !== 'application/pdf') {
-      setUploadError("Only PDF files are allowed.");
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError("Only PDF and Word files (.pdf, .doc, .docx) are allowed.");
       return;
     }
 
-    // Validate file size (50MB limit)
-    if (file.size > 50 * 1024 * 1024) {
-      setUploadError("File size must be less than 50MB.");
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("File size must be less than 10MB.");
       return;
     }
 
     setUploading(true);
     try {
       const token = getToken();
-      const result = await uploadResearch(title.trim(), abstract.trim(), file, token!);
+      const result = await uploadResearch(title.trim(), abstract.trim(), department.trim(), course.trim(), file, token!);
 
       if (result) {
         setTitle("");
         setAbstract("");
+        setDepartment("");
+        setCourse("");
         setFile(null);
         setShowUploadForm(false);
         await fetchResearch();
@@ -89,7 +94,17 @@ export default function ResearchPage() {
         setUploadError("Failed to upload research paper. Please try again.");
       }
     } catch (err: any) {
-      setUploadError(err.message || "Failed to upload research paper. Please try again.");
+      let errorMessage = "Failed to upload research paper. Please try again.";
+      
+      if (err.message) {
+        errorMessage = err.message;
+      } else if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
+        errorMessage = "Cannot connect to server. Please check if the backend is running on port 5001.";
+      } else if (err.name === 'TypeError' && err.message.includes('NetworkError')) {
+        errorMessage = "Network error. Please check your internet connection and server status.";
+      }
+      
+      setUploadError(errorMessage);
       console.error("Upload error:", err);
     } finally {
       setUploading(false);
@@ -171,14 +186,44 @@ export default function ResearchPage() {
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-white/90">
+                    Department *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Computer Science"
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-400 transition-all"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-white/90">
+                    Course *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., CS101"
+                    value={course}
+                    onChange={(e) => setCourse(e.target.value)}
+                    className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-400 transition-all"
+                    required
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-white/90">
-                  PDF File *
+                  PDF/Word File *
                 </label>
                 <div className="relative">
                   <input
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf,.doc,.docx"
                     onChange={(e) => setFile(e.target.files?.[0] || null)}
                     className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white file:mr-4 file:rounded-lg file:border-0 file:bg-purple-500 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-purple-600 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-400 transition-all"
                     required

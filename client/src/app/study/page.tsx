@@ -132,8 +132,9 @@ export default function StudyPage() {
     }
 
     // Validate file type
-    if (file.type !== 'application/pdf') {
-      setUploadError("Only PDF files are allowed.");
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError("Only PDF and Word files (.pdf, .doc, .docx) are allowed.");
       return;
     }
 
@@ -190,8 +191,9 @@ export default function StudyPage() {
     }
 
     // Validate file type
-    if (file.type !== 'application/pdf') {
-      setUploadError("Only PDF files are allowed.");
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError("Only PDF and Word files (.pdf, .doc, .docx) are allowed.");
       return;
     }
 
@@ -424,12 +426,12 @@ export default function StudyPage() {
 
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-white/90">
-                    PDF File *
+                    PDF/Word File *
                   </label>
                   <div className="relative">
                     <input
                       type="file"
-                      accept=".pdf"
+                      accept=".pdf,.doc,.docx"
                       onChange={(e) => setFile(e.target.files?.[0] || null)}
                       className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white file:mr-4 file:rounded-lg file:border-0 file:bg-purple-500 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-purple-600 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-400 transition-all"
                       required

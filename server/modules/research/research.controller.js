@@ -2,14 +2,16 @@ const { uploadResearch, getResearch, getResearchById } = require('./research.ser
 
 const uploadResearchController = async (req, res) => {
   try {
-    const { title, abstract, course_id } = req.body;
+    const { title, abstract, department, course } = req.body;
     const userId = req.userId;
     const file = req.file;
 
-    if (!title || !file) {
+    console.log('Research upload debug:', { body: req.body, file: file ? { filename: file.filename, size: file.size } : 'No file', userId });
+
+    if (!title || !file || !department || !course) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: title, file',
+        message: 'Missing required fields: title, file, department, course',
       });
     }
 
@@ -21,7 +23,7 @@ const uploadResearchController = async (req, res) => {
     }
 
     const fileUrl = `/uploads/${file.filename}`;
-    const research = await uploadResearch(title, abstract, fileUrl, userId, course_id || null);
+    const research = await uploadResearch(title, abstract, fileUrl, userId, department, course);
 
     res.status(201).json({
       success: true,
@@ -31,8 +33,7 @@ const uploadResearchController = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error uploading research paper',
-      error: error.message,
+      message: error.message || 'Error uploading research paper',
     });
   }
 };

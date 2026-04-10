@@ -1,14 +1,22 @@
 const pool = require('../../config/db');
 
 const uploadResearch = async (title, abstract, fileUrl, userId, courseId = null) => {
-  const query = `
-    INSERT INTO research (title, abstract, file_url, user_id, course_id)
-    VALUES ($1, $2, $3, $4, $5)
-    RETURNING *
-  `;
-  const values = [title, abstract, fileUrl, userId, courseId];
-  const result = await pool.query(query, values);
-  return result.rows[0];
+  try {
+    console.log('Research service debug:', { title, abstract: abstract?.substring(0, 50), fileUrl, userId, courseId });
+    
+    const query = `
+      INSERT INTO research (title, abstract, file_url, user_id, course_id)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *;
+    `;
+    const values = [title, abstract, fileUrl, userId, courseId];
+    const result = await pool.query(query, values);
+    console.log('Research inserted successfully:', result.rows[0]);
+    return result.rows[0];
+  } catch (error) {
+    console.error('Research service error:', error);
+    throw error;
+  }
 };
 
 const getResearch = async () => {

@@ -3,8 +3,8 @@ const pool = require('../../config/db');
 const uploadNote = async (title, fileUrl, userId, courseId) => {
   try {
     const result = await pool.query(
-      'INSERT INTO notes (title, content, file_url, user_id, course_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, title, file_url, user_id, course_id, created_at',
-      [title, '', fileUrl, userId, courseId]
+      'INSERT INTO notes (title, file_url, user_id, course_id) VALUES ($1, $2, $3, $4) RETURNING id, title, file_url, user_id, course_id, created_at',
+      [title, fileUrl, userId, courseId]
     );
     return result.rows[0];
   } catch (error) {

@@ -25,6 +25,8 @@ export const getResearchById = async (researchId: string): Promise<any | null> =
 export const uploadResearch = async (
   title: string,
   abstract: string,
+  department: string,
+  course: string,
   file: File,
   token: string
 ): Promise<any | null> => {
@@ -32,6 +34,8 @@ export const uploadResearch = async (
     const formData = new FormData();
     formData.append('title', title);
     formData.append('abstract', abstract);
+    formData.append('department', department);
+    formData.append('course', course);
     formData.append('file', file);
 
     const response = await fetch(`${API_BASE}/api/research/upload`, {

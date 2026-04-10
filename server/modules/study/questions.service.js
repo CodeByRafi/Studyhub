@@ -18,7 +18,7 @@ const uploadQuestion = async (title, fileUrl, userId, courseId) => {
 const getQuestions = async (courseId = null) => {
   try {
     let query = `
-      SELECT q.id, q.title, q.file_url, q.user_id, q.course_id, q.exam_year, q.exam_type, q.created_at, q.updated_at,
+      SELECT q.id, q.title, q.file_url, q.user_id, q.course_id, q.created_at, q.updated_at,
              u.first_name, u.last_name,
              COALESCE(ROUND(AVG(CAST(qr.rating AS FLOAT)), 1), 0) as average_rating,
              COUNT(DISTINCT qr.id) as rating_count,
