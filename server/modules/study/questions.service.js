@@ -20,7 +20,7 @@ const getQuestions = async ({ department, course, searchQuery }) => {
              u.first_name, u.last_name,
              c.name as course_name,
              d.name as department_name,
-             COALESCE(ROUND(AVG(CAST(qr.rating AS FLOAT)), 1), 0) as average_rating,
+             COALESCE(ROUND(AVG(qr.rating)::numeric, 1), 0) as average_rating,
              COUNT(DISTINCT qr.id) as rating_count,
              COUNT(DISTINCT qc.id) as comment_count
       FROM questions q
@@ -65,7 +65,7 @@ const getQuestionById = async (questionId) => {
               u.first_name, u.last_name,
               c.name as course_name,
               d.name as department_name,
-              COALESCE(ROUND(AVG(CAST(qr.rating AS FLOAT)), 1), 0) as average_rating,
+              COALESCE(ROUND(AVG(qr.rating)::numeric, 1), 0) as average_rating,
               COUNT(DISTINCT qr.id) as rating_count,
               COUNT(DISTINCT qc.id) as comment_count
        FROM questions q

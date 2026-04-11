@@ -51,6 +51,7 @@ app.get('/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', require('./modules/auth/user.routes'));
 app.use('/api', analyticsRoutes);
 app.use('/api/study', studyRoutes);
 app.use('/api/research', researchRoutes);

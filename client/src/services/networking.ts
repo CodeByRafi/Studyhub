@@ -34,15 +34,21 @@ export async function getNetworkingProfileByUserId(userId: string) {
 export async function createOrUpdateNetworkingProfile(profileData: any) {
   try {
     const token = getToken();
-    console.log('Posting networking profile to:', `${API_URL}/api/networking`);
+    const isFormData = profileData instanceof FormData;
     
+    const headers: any = {
+      Authorization: `Bearer ${token}`,
+    };
+
+    // If it's not FormData, we need to set Content-Type to application/json
+    if (!isFormData) {
+      headers['Content-Type'] = 'application/json';
+    }
+
     const response = await fetch(`${API_URL}/api/networking`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(profileData),
+      headers,
+      body: isFormData ? profileData : JSON.stringify(profileData),
     });
 
     const data = await response.json().catch(() => ({}));
@@ -54,7 +60,6 @@ export async function createOrUpdateNetworkingProfile(profileData: any) {
     return data.data;
   } catch (error: any) {
     console.error('Create/Update Networking Profile Error:', error);
-    // Rethrow a more user-friendly error if it's a fetch error
     if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
       throw new Error("Cannot connect to server. Please check if the backend is running on port 5001.");
     }

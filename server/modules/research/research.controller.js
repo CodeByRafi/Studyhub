@@ -8,10 +8,10 @@ const uploadResearchController = async (req, res) => {
 
     console.log('Research upload debug:', { body: req.body, file: file ? { filename: file.filename, size: file.size } : 'No file', userId });
 
-    if (!title || !file || !department || !course) {
+    if (!title || !file || !department) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: title, file, department, course',
+        message: 'Missing required fields: title, file, department',
       });
     }
 

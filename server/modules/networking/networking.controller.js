@@ -16,7 +16,8 @@ exports.getAllProfiles = async (req, res) => {
         np.linkedin_url,
         np.github_url,
         np.portfolio_url,
-        np.profile_photo_url
+        u.profile_image as profile_photo_url,
+        np.cover_photo_url
       FROM networking_profiles np
       JOIN users u ON np.user_id = u.id
       LEFT JOIN departments d ON u.department_id = d.id`
@@ -35,6 +36,7 @@ exports.getProfileByUserId = async (req, res) => {
         np.*,
         u.first_name,
         u.last_name,
+        u.profile_image as profile_photo_url,
         d.name AS department_name
       FROM networking_profiles np
       JOIN users u ON np.user_id = u.id
@@ -54,7 +56,6 @@ exports.getProfileByUserId = async (req, res) => {
 // Create or update a networking profile
 exports.createOrUpdateProfile = async (req, res) => {
   const {
-    profile_photo_url = null,
     headline = "",
     current_status = "",
     bio = "",
@@ -69,8 +70,19 @@ exports.createOrUpdateProfile = async (req, res) => {
   } = req.body;
 
   const userId = req.userId;
+  
+  // Handle file uploads
+  let profile_photo_url = req.body.profile_photo_url;
+  let cover_photo_url = req.body.cover_photo_url;
 
-  console.log('Receiving profile update for user:', userId, { headline, current_status });
+  if (req.files) {
+    if (req.files.profile_photo) {
+      profile_photo_url = `/uploads/profiles/${req.files.profile_photo[0].filename}`;
+    }
+    if (req.files.cover_photo) {
+      cover_photo_url = `/uploads/profiles/${req.files.cover_photo[0].filename}`;
+    }
+  }
 
   try {
     // Check if a profile already exists for the user
@@ -85,33 +97,35 @@ exports.createOrUpdateProfile = async (req, res) => {
         `UPDATE networking_profiles
         SET
           profile_photo_url = $1,
-          headline = $2,
-          current_status = $3,
-          bio = $4,
-          skills = $5,
-          current_company = $6,
-          role_designation = $7,
-          linkedin_url = $8,
-          github_url = $9,
-          portfolio_url = $10,
-          graduation_year = $11,
-          open_to = $12,
+          cover_photo_url = $2,
+          headline = $3,
+          current_status = $4,
+          bio = $5,
+          skills = $6,
+          current_company = $7,
+          role_designation = $8,
+          linkedin_url = $9,
+          github_url = $10,
+          portfolio_url = $11,
+          graduation_year = $12,
+          open_to = $13,
           updated_at = CURRENT_TIMESTAMP
-        WHERE user_id = $13
+        WHERE user_id = $14
         RETURNING *`,
         [
           profile_photo_url,
+          cover_photo_url,
           headline,
           current_status,
           bio,
-          skills,
+          skills ? (Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim())) : [],
           current_company,
           role_designation,
           linkedin_url,
           github_url,
           portfolio_url,
           graduation_year,
-          open_to,
+          open_to ? (Array.isArray(open_to) ? open_to : open_to.split(',').map(s => s.trim())) : [],
           userId,
         ]
       );
@@ -122,6 +136,7 @@ exports.createOrUpdateProfile = async (req, res) => {
         `INSERT INTO networking_profiles (
           user_id,
           profile_photo_url,
+          cover_photo_url,
           headline,
           current_status,
           bio,
@@ -133,22 +148,23 @@ exports.createOrUpdateProfile = async (req, res) => {
           portfolio_url,
           graduation_year,
           open_to
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
         RETURNING *`,
         [
           userId,
           profile_photo_url,
+          cover_photo_url,
           headline,
           current_status,
           bio,
-          skills,
+          skills ? (Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim())) : [],
           current_company,
           role_designation,
           linkedin_url,
           github_url,
           portfolio_url,
           graduation_year,
-          open_to,
+          open_to ? (Array.isArray(open_to) ? open_to : open_to.split(',').map(s => s.trim())) : [],
         ]
       );
       return res.status(201).json({ success: true, data: result.rows[0] });

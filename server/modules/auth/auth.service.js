@@ -54,7 +54,7 @@ const login = async (email, password) => {
   try {
     // Find user by email
     const result = await pool.query(
-      'SELECT id, email, password, first_name, last_name FROM users WHERE email = $1',
+      'SELECT id, email, password, first_name, last_name, profile_image FROM users WHERE email = $1',
       [email]
     );
 

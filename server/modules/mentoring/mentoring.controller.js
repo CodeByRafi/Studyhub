@@ -8,6 +8,7 @@ exports.getAllMentors = async (req, res) => {
         mp.*,
         u.first_name,
         u.last_name,
+        u.profile_image as profile_photo_url,
         d.name AS department_name
       FROM mentor_profiles mp
       JOIN users u ON mp.user_id = u.id
@@ -30,6 +31,7 @@ exports.getMentorByUserId = async (req, res) => {
         mp.*,
         u.first_name,
         u.last_name,
+        u.profile_image as profile_photo_url,
         d.name AS department_name
       FROM mentor_profiles mp
       JOIN users u ON mp.user_id = u.id
