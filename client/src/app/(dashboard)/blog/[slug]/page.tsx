@@ -55,7 +55,7 @@ The Pomodoro Technique is a time management method that breaks work into focused
 
 This technique helps because:
 - It creates a sense of urgency
-- Regular breaks prevent burnout
+- Regular breaks prevent a burnout
 - It's easier to stay focused for 25 minutes than several hours
 - It builds momentum for longer study sessions
 
