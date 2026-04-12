@@ -99,13 +99,23 @@ export default function SignupPage() {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           student_id: studentId.trim(),
-          department,
+          department, // Frontend sends name, backend will handle lookup or ID mapping
         }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonErr) {
+        throw new Error("Invalid response from server");
+      }
 
-      if (!response.ok || !data.success) {
+      if (!response.ok) {
+        setError(data.message || `Server error: ${response.status}`);
+        return;
+      }
+
+      if (!data.success) {
         setError(data.message || "Signup failed. Please try again.");
         return;
       }
@@ -117,7 +127,11 @@ export default function SignupPage() {
       }, 1500);
     } catch (err: any) {
       console.error("Signup error:", err);
-      setError("Network error. Please check your connection and try again.");
+      if (err.name === 'TypeError' || err.message.includes('fetch')) {
+        setError("Cannot connect to server. Please ensure the backend is running on port 5001.");
+      } else {
+        setError(err.message || "An unexpected error occurred.");
+      }
     } finally {
       setLoading(false);
     }

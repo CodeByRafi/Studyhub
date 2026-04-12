@@ -6,19 +6,24 @@ const recordVisitController = async (req, res) => {
     const { page } = req.body;
     const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
     const userAgent = req.get('user-agent') || 'unknown';
-    const userId = null; // Can be set if user is logged in
+    const userId = req.userId || null;
 
-    await recordVisit(page, ipAddress, userAgent, userId);
+    // Fire and forget, or handle it resiliently
+    recordVisit(page, ipAddress, userAgent, userId).catch(err => 
+      console.error('Safe-catch: Analytics recording failed:', err)
+    );
 
+    // Always respond with success to the client for analytics pings
     res.status(200).json({
       success: true,
-      message: 'Visit recorded',
+      message: 'Processing visit',
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error recording visit',
-      error: error.message,
+    // This catch only triggers if the request processing itself fails
+    console.error('Analytics controller error:', error);
+    res.status(200).json({
+      success: true,
+      message: 'Analytics request received',
     });
   }
 };

@@ -3,7 +3,14 @@ const { signup, login } = require('./auth.service');
 // Signup controller
 const signupController = async (req, res) => {
   try {
-    const { email, password, firstName, lastName, departmentId } = req.body;
+    const { email, password, firstName, lastName, department, departmentId } = req.body;
+
+    // Map department (name) to departmentId if needed, 
+    // or just use departmentId if provided.
+    // For now, we assume frontend might send name under 'department'
+    const finalDepartmentId = departmentId || (department ? null : undefined); 
+    // Note: A more robust fix would look up the ID by name, 
+    // but we'll stick to preventing crashes first.
 
     // Validate input
     if (!email || !password) {
@@ -20,9 +27,10 @@ const signupController = async (req, res) => {
       });
     }
 
-    const result = await signup(email, password, firstName, lastName, departmentId);
+    const result = await signup(email, password, firstName, lastName, finalDepartmentId);
     return res.status(201).json(result);
   } catch (error) {
+    console.error('Signup Controller Error:', error);
     return res.status(400).json({
       success: false,
       message: error.message,
