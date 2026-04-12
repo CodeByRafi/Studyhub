@@ -25,16 +25,20 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.get('/test-db', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');
-    res.status(200).json({
+    res.json({
       success: true,
       message: 'Database connection successful',
-      time: result.rows[0].now,
+      time: result.rows[0],
     });
   } catch (error) {
+    console.error('Database test error full:', error);
+    console.error('Database test error message:', error?.message);
+    console.error('Database test error stack:', error?.stack);
+
     res.status(500).json({
       success: false,
       message: 'Database connection failed',
-      error: error.message,
+      error: error?.message || 'Unknown error',
     });
   }
 });
