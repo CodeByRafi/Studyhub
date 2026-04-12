@@ -1,4 +1,5 @@
 const multer = require('multer');
+const fs = require('fs');
 const path = require('path');
 
 // Allowed image types
@@ -10,8 +11,11 @@ const ALLOWED_MIMETYPES = [
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Relative to server root
-    cb(null, path.join(__dirname, '..', 'uploads', 'profiles'));
+    const destinationPath = path.join(__dirname, '..', 'uploads', 'profiles');
+    if (!fs.existsSync(destinationPath)) {
+      fs.mkdirSync(destinationPath, { recursive: true });
+    }
+    cb(null, destinationPath);
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);

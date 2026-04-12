@@ -9,6 +9,7 @@ exports.getAllProfiles = async (req, res) => {
         np.user_id,
         u.first_name,
         u.last_name,
+        u.email,
         d.name AS department_name,
         np.headline,
         np.current_status,
@@ -36,6 +37,7 @@ exports.getProfileByUserId = async (req, res) => {
         np.*,
         u.first_name,
         u.last_name,
+        u.email,
         u.profile_image as profile_photo_url,
         d.name AS department_name
       FROM networking_profiles np
@@ -55,6 +57,7 @@ exports.getProfileByUserId = async (req, res) => {
 
 // Create or update a networking profile
 exports.createOrUpdateProfile = async (req, res) => {
+  const body = req.body || {};
   const {
     headline = "",
     current_status = "",
@@ -67,7 +70,7 @@ exports.createOrUpdateProfile = async (req, res) => {
     portfolio_url = null,
     graduation_year = null,
     open_to = [],
-  } = req.body;
+  } = body;
 
   const userId = req.userId;
   
@@ -148,7 +151,7 @@ exports.createOrUpdateProfile = async (req, res) => {
           portfolio_url,
           graduation_year,
           open_to
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         RETURNING *`,
         [
           userId,

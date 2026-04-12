@@ -109,6 +109,8 @@ CREATE TABLE IF NOT EXISTS research (
   file_url VARCHAR(500),
   user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   course_id INT REFERENCES courses(id) ON DELETE SET NULL,
+  department_name VARCHAR(255),
+  course_name VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

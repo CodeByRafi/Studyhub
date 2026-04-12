@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getResearch, uploadResearch } from "@/services/research";
+import { getDepartments, getCourses, addCourse } from "@/services/study";
 import { API_URL } from "@/services/api";
 import { getToken, getUser } from "@/lib/auth";
 import StudyCard from "@/components/StudyCard";
@@ -22,11 +23,65 @@ export default function ResearchPage() {
   const [course, setCourse] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
+  
+  // Department/Course state
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [showAddCourse, setShowAddCourse] = useState(false);
+  const [newCourseName, setNewCourseName] = useState("");
+  const [addingCourse, setAddingCourse] = useState(false);
 
   useEffect(() => {
     setUser(getUser());
     fetchResearch();
+    fetchDepartmentsData();
   }, []);
+
+  useEffect(() => {
+    if (department) {
+      fetchCoursesData(department);
+    } else {
+      setCourses([]);
+      setCourse("");
+    }
+  }, [department]);
+
+  const fetchDepartmentsData = useCallback(async () => {
+    const data = await getDepartments();
+    setDepartments(data);
+  }, []);
+
+  const fetchCoursesData = useCallback(async (deptId: string) => {
+    const data = await getCourses(deptId);
+    setCourses(data);
+  }, []);
+
+  const handleAddCourse = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
+    if (!newCourseName.trim() || !department) return;
+
+    setAddingCourse(true);
+    try {
+      const token = getToken();
+      if (!token) {
+        setUploadError("Authentication required");
+        setAddingCourse(false);
+        return;
+      }
+      const result = await addCourse(department, newCourseName.trim(), token);
+      if (result) {
+        setNewCourseName("");
+        setShowAddCourse(false);
+        setCourse(String(result.id));
+        fetchCoursesData(department);
+      }
+    } catch (err) {
+      console.error('Failed to add course:', err);
+      setUploadError('Failed to add course');
+    } finally {
+      setAddingCourse(false);
+    }
+  };
 
   const fetchResearch = useCallback(async () => {
     setLoading(true);
@@ -50,9 +105,23 @@ export default function ResearchPage() {
     setUploading(true);
     try {
       const token = getToken();
-      const result = await uploadResearch(title.trim(), abstract.trim(), department.trim(), course.trim(), file, token!);
+      const deptName = departments.find((d: any) => d.id === parseInt(department, 10))?.name || department;
+      const courseName = course ? courses.find((c: any) => c.id === parseInt(course, 10))?.name || course : "";
+      
+      const result = await uploadResearch(
+        title.trim(),
+        abstract.trim(),
+        deptName,
+        courseName,
+        file,
+        token!
+      );
       if (result) {
-        setTitle(""); setAbstract(""); setFile(null);
+        setTitle("");
+        setAbstract("");
+        setFile(null);
+        setDepartment("");
+        setCourse("");
         setShowUploadForm(false);
         fetchResearch();
       }
@@ -121,15 +190,74 @@ export default function ResearchPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Academic Department</label>
-                <input
-                  type="text"
+                <select
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-xl px-4 text-white focus:border-sky-500 outline-none"
-                  placeholder="e.g., Computer Science"
-                />
+                  className="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-xl px-4 text-white focus:border-sky-500 outline-none appearance-none"
+                >
+                  <option value="">Select Department</option>
+                  {departments.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                </select>
               </div>
               <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Course (Optional)</label>
+                <div className="flex gap-2">
+                  <select
+                    value={course}
+                    onChange={(e) => setCourse(e.target.value)}
+                    className="flex-1 h-12 bg-zinc-950 border border-zinc-800 rounded-xl px-4 text-white focus:border-sky-500 outline-none disabled:opacity-50 appearance-none"
+                    disabled={!department}
+                  >
+                    <option value="">Select Course</option>
+                    {courses.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCourse(!showAddCourse)}
+                    disabled={!department}
+                    className="px-4 h-12 bg-zinc-800 border border-zinc-700 rounded-xl text-white hover:bg-zinc-700 disabled:opacity-50 transition-colors"
+                    title="Add new course"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                </div>
+                {showAddCourse && (
+                  <div className="flex gap-2 mt-2">
+                    <input
+                      type="text"
+                      value={newCourseName}
+                      onChange={(e) => setNewCourseName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddCourse(e as any);
+                        }
+                      }}
+                      placeholder="New course name"
+                      className="flex-1 h-10 bg-zinc-900 border border-zinc-700 rounded-lg px-3 text-white focus:border-sky-500 outline-none placeholder:text-zinc-600 text-sm"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => handleAddCourse(e as any)}
+                      disabled={!newCourseName.trim() || addingCourse}
+                      className="px-3 h-10 bg-sky-600 text-white rounded-lg hover:bg-sky-500 disabled:opacity-50 font-semibold text-sm"
+                    >
+                      {addingCourse ? 'Adding...' : 'Add'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowAddCourse(false); setNewCourseName(""); }}
+                      className="px-3 h-10 bg-zinc-800 text-zinc-400 rounded-lg hover:text-white text-sm"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="md:col-span-2 space-y-2">
                 <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">PDF Manuscript</label>
                 <input
                   type="file"
@@ -157,7 +285,7 @@ export default function ResearchPage() {
           {research.map((paper) => (
             <StudyCard 
               key={paper.id} 
-              item={{...paper, department_name: paper.department, course_name: paper.course}}
+              item={{...paper, department_name: paper.department_name, course_name: paper.course_name}}
               onDownload={handleDownload} 
               type="research" 
             />

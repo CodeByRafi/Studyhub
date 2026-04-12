@@ -9,7 +9,8 @@ import {
   uploadNote, 
   getQuestions, 
   uploadQuestion, 
-  getDepartmentSuggestions 
+  getDepartmentSuggestions,
+  addCourse
 } from "@/services/study";
 import { API_URL } from "@/services/api";
 import { getToken, getUser } from "@/lib/auth";
@@ -34,6 +35,9 @@ export default function StudyView({ type, title, subtitle }: StudyViewProps) {
   const [file, setFile] = useState<File | null>(null);
   const [selectedDept, setSelectedDept] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
+  const [newCourseName, setNewCourseName] = useState("");
+  const [showAddCourse, setShowAddCourse] = useState(false);
+  const [addingCourse, setAddingCourse] = useState(false);
 
   // Data state
   const [departments, setDepartments] = useState<any[]>([]);
@@ -69,6 +73,33 @@ export default function StudyView({ type, title, subtitle }: StudyViewProps) {
     const data = await getCourses(deptId);
     setCourses(data);
   }, []);
+
+  const handleAddCourse = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
+    if (!newCourseName.trim() || !selectedDept) return;
+
+    setAddingCourse(true);
+    try {
+      const token = getToken();
+      if (!token) {
+        setUploadError("Authentication required");
+        setAddingCourse(false);
+        return;
+      }
+      const result = await addCourse(selectedDept, newCourseName.trim(), token);
+      if (result) {
+        setNewCourseName("");
+        setShowAddCourse(false);
+        setSelectedCourse(String(result.id));
+        fetchCourses(selectedDept);
+      }
+    } catch (err) {
+      console.error('Failed to add course:', err);
+      setUploadError('Failed to add course');
+    } finally {
+      setAddingCourse(false);
+    }
+  };
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -165,15 +196,61 @@ export default function StudyView({ type, title, subtitle }: StudyViewProps) {
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Course</label>
-                <select
-                  value={selectedCourse}
-                  onChange={(e) => setSelectedCourse(e.target.value)}
-                  className="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-xl px-4 text-white focus:border-sky-500 outline-none disabled:opacity-50 appearance-none"
-                  disabled={!selectedDept}
-                >
-                  <option value="">Select Course</option>
-                  {courses.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
+                <div className="flex gap-2">
+                  <select
+                    value={selectedCourse}
+                    onChange={(e) => setSelectedCourse(e.target.value)}
+                    className="flex-1 h-12 bg-zinc-950 border border-zinc-800 rounded-xl px-4 text-white focus:border-sky-500 outline-none disabled:opacity-50 appearance-none"
+                    disabled={!selectedDept}
+                  >
+                    <option value="">Select Course</option>
+                    {courses.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCourse(!showAddCourse)}
+                    disabled={!selectedDept}
+                    className="px-4 h-12 bg-zinc-800 border border-zinc-700 rounded-xl text-white hover:bg-zinc-700 disabled:opacity-50 transition-colors"
+                    title="Add new course"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                </div>
+                {showAddCourse && (
+                  <div className="flex gap-2 mt-2">
+                    <input
+                      type="text"
+                      value={newCourseName}
+                      onChange={(e) => setNewCourseName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddCourse(e as any);
+                        }
+                      }}
+                      placeholder="New course name"
+                      className="flex-1 h-10 bg-zinc-900 border border-zinc-700 rounded-lg px-3 text-white focus:border-sky-500 outline-none placeholder:text-zinc-600 text-sm"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => handleAddCourse(e as any)}
+                      disabled={!newCourseName.trim() || addingCourse}
+                      className="px-3 h-10 bg-sky-600 text-white rounded-lg hover:bg-sky-500 disabled:opacity-50 font-semibold text-sm"
+                    >
+                      {addingCourse ? 'Adding...' : 'Add'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowAddCourse(false); setNewCourseName(""); }}
+                      className="px-3 h-10 bg-zinc-800 text-zinc-400 rounded-lg hover:text-white text-sm"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">File (PDF / DOCX)</label>

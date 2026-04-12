@@ -30,7 +30,7 @@ export async function getNetworkingProfileByUserId(userId: string) {
     return data.data;
   } catch (error: any) {
     console.error('Failed to fetch networking profile:', error);
-    throw error;
+    return null;
   }
 }
 

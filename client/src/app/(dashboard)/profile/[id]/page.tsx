@@ -20,10 +20,13 @@ export default function ProfilePage() {
   const [error, setError] = useState("");
   const [currentUser, setCurrentUser] = useState<any>(null);
 
-  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
-  const [messageContent, setMessageContent] = useState("");
-  const [isSending, setIsSending] = useState(false);
-  const [hasSent, setHasSent] = useState(false);
+  const openEmailClient = () => {
+    if (!profile?.email) {
+      window.alert('Email not available for this user.');
+      return;
+    }
+    window.location.href = `mailto:${profile.email}?subject=${encodeURIComponent('StudyHub Connection')}`;
+  };
 
   useEffect(() => {
     setCurrentUser(getUser());
@@ -41,20 +44,6 @@ export default function ProfilePage() {
     fetchProfile();
   }, [userId]);
 
-  const handleSendMessage = () => {
-    if (!messageContent.trim()) return;
-    setIsSending(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSending(false);
-      setHasSent(true);
-      setTimeout(() => {
-        setIsMessageModalOpen(false);
-        setHasSent(false);
-        setMessageContent("");
-      }, 2000);
-    }, 1500);
-  };
 
   const isOwnProfile = currentUser?.id?.toString() === userId?.toString();
 
@@ -119,7 +108,7 @@ export default function ProfilePage() {
                  <Button size="lg" className="px-10">Edit Profile</Button>
                </Link>
              ) : (
-               <Button size="lg" className="px-10" onClick={() => setIsMessageModalOpen(true)}>Send Direct Message</Button>
+               <Button size="lg" className="px-10" onClick={openEmailClient}>Send Direct Message</Button>
              )}
           </div>
         </div>
@@ -177,10 +166,10 @@ export default function ProfilePage() {
                     <span className="text-zinc-500 uppercase tracking-tighter">Department</span>
                     <span className="text-zinc-200">{profile.department_name}</span>
                   </div>
-                  {profile.status && (
+                  {profile.current_status && (
                     <div className="flex justify-between">
                       <span className="text-zinc-500 uppercase tracking-tighter">Academic Status</span>
-                      <span className="text-zinc-200">{profile.status}</span>
+                      <span className="text-zinc-200">{profile.current_status}</span>
                     </div>
                   )}
                </div>
@@ -194,68 +183,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Message Modal */}
-      {isMessageModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#09090b]/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <Card className="w-full max-w-lg p-10 space-y-8 shadow-2xl border-sky-500/20 overflow-hidden relative">
-            {hasSent ? (
-              <div className="py-12 text-center space-y-6 animate-in zoom-in duration-300">
-                <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center text-4xl mx-auto text-emerald-500">✓</div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-white">Message Dispatched</h3>
-                  <p className="text-zinc-500 font-medium">Your scholarly request has been sent to {profile.first_name}.</p>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Direct Inquiry</h2>
-                    <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Subject: Scholar-to-Scholar Connection</p>
-                  </div>
-                  <button onClick={() => setIsMessageModalOpen(false)} className="text-zinc-500 hover:text-white transition-colors">
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="flex items-center gap-4 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl">
-                     <div className="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center font-bold text-sky-500">{profile.first_name?.[0]}</div>
-                     <div>
-                        <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Recipient</p>
-                        <p className="text-sm font-bold text-white">{profile.first_name} {profile.last_name}</p>
-                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Your Message</label>
-                    <textarea
-                      value={messageContent}
-                      onChange={(e) => setMessageContent(e.target.value)}
-                      placeholder="Start a professional conversation or ask a specific academic question..."
-                      className="w-full h-40 bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-zinc-300 focus:border-sky-500 outline-none transition-all placeholder:text-zinc-800"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <Button variant="secondary" className="flex-1" onClick={() => setIsMessageModalOpen(false)}>Discard</Button>
-                  <Button 
-                    className="flex-1" 
-                    onClick={handleSendMessage} 
-                    isLoading={isSending}
-                    disabled={!messageContent.trim()}
-                  >
-                    Send Inquiry
-                  </Button>
-                </div>
-              </>
-            )}
-          </Card>
-        </div>
-      )}
     </div>
   );
 }

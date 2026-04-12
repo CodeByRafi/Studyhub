@@ -20,6 +20,9 @@ export async function getMentorByUserId(userId: string) {
   try {
     const response = await fetch(`${API_URL}/api/mentoring/${userId}`);
     if (!response.ok) {
+      if (response.status === 404) {
+        return null;
+      }
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || `Server error: ${response.status}`);
     }
@@ -27,7 +30,7 @@ export async function getMentorByUserId(userId: string) {
     return data.data;
   } catch (error: any) {
     console.error('Failed to fetch mentor profile:', error);
-    throw error;
+    return null;
   }
 }
 

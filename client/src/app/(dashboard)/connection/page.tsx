@@ -265,7 +265,221 @@ export default function ConnectionPage() {
         </div>
       )}
 
-      {/* Forms and Modals would go here - preserved functionality */}
+      {isProfileFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-2xl rounded-3xl border border-zinc-800 bg-zinc-950 p-8 shadow-2xl">
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-white">{userProfile ? "Edit Networking Profile" : "Join Networking Hub"}</h2>
+                <p className="text-sm text-zinc-400">Share your professional story and connect with peers.</p>
+              </div>
+              <Button variant="ghost" onClick={() => setIsProfileFormOpen(false)}>Close</Button>
+            </div>
+            <form onSubmit={handleProfileSubmit} className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="space-y-2 text-sm text-zinc-300">
+                  Headline
+                  <input
+                    value={formState.headline}
+                    onChange={(e) => setFormState((prev) => ({ ...prev, headline: e.target.value }))}
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                    placeholder="Your current role or focus"
+                  />
+                </label>
+                <label className="space-y-2 text-sm text-zinc-300">
+                  Current Status
+                  <input
+                    value={formState.current_status}
+                    onChange={(e) => setFormState((prev) => ({ ...prev, current_status: e.target.value }))}
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                    placeholder="Student, Intern, Researcher..."
+                  />
+                </label>
+              </div>
+              <label className="space-y-2 text-sm text-zinc-300">
+                Bio
+                <textarea
+                  value={formState.bio}
+                  onChange={(e) => setFormState((prev) => ({ ...prev, bio: e.target.value }))}
+                  className="w-full min-h-[120px] rounded-3xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                  placeholder="Tell fellow students about your interests and goals"
+                />
+              </label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="space-y-2 text-sm text-zinc-300">
+                  Skills
+                  <input
+                    value={formState.skills}
+                    onChange={(e) => setFormState((prev) => ({ ...prev, skills: e.target.value }))}
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                    placeholder="Comma separated skills"
+                  />
+                </label>
+                <label className="space-y-2 text-sm text-zinc-300">
+                  LinkedIn URL
+                  <input
+                    value={formState.linkedin_url}
+                    onChange={(e) => setFormState((prev) => ({ ...prev, linkedin_url: e.target.value }))}
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                    placeholder="https://linkedin.com/..."
+                  />
+                </label>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="space-y-2 text-sm text-zinc-300">
+                  GitHub URL
+                  <input
+                    value={formState.github_url}
+                    onChange={(e) => setFormState((prev) => ({ ...prev, github_url: e.target.value }))}
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                    placeholder="https://github.com/..."
+                  />
+                </label>
+                <label className="space-y-2 text-sm text-zinc-300">
+                  Portfolio URL
+                  <input
+                    value={formState.portfolio_url}
+                    onChange={(e) => setFormState((prev) => ({ ...prev, portfolio_url: e.target.value }))}
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                    placeholder="https://yourportfolio.com"
+                  />
+                </label>
+              </div>
+              <label className="space-y-2 text-sm text-zinc-300">
+                Open To
+                <input
+                  value={formState.open_to.join(", ")}
+                  onChange={(e) => setFormState((prev) => ({ ...prev, open_to: e.target.value.split(",").map((item) => item.trim()).filter(Boolean) }))}
+                  className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                  placeholder="Mentoring, Collaboration, Study Groups"
+                />
+              </label>
+              <div className="flex items-center justify-end gap-3 pt-3">
+                <Button variant="secondary" type="button" onClick={() => setIsProfileFormOpen(false)}>Cancel</Button>
+                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Profile"}</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isMentorFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-2xl rounded-3xl border border-zinc-800 bg-zinc-950 p-8 shadow-2xl">
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-white">{userMentorProfile ? "Edit Mentor Profile" : "Become a Mentor"}</h2>
+                <p className="text-sm text-zinc-400">Offer guidance, share expertise, and connect with mentees.</p>
+              </div>
+              <Button variant="ghost" onClick={() => setIsMentorFormOpen(false)}>Close</Button>
+            </div>
+            <form onSubmit={handleMentorSubmit} className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="space-y-2 text-sm text-zinc-300">
+                  Headline
+                  <input
+                    value={mentorFormState.headline}
+                    onChange={(e) => setMentorFormState((prev) => ({ ...prev, headline: e.target.value }))}
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                    placeholder="Your mentor title or expertise"
+                  />
+                </label>
+                <label className="space-y-2 text-sm text-zinc-300">
+                  Current Status
+                  <input
+                    value={mentorFormState.current_status}
+                    onChange={(e) => setMentorFormState((prev) => ({ ...prev, current_status: e.target.value }))}
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                    placeholder="Professor, Industry Mentor, Student Mentor..."
+                  />
+                </label>
+              </div>
+              <label className="space-y-2 text-sm text-zinc-300">
+                Bio
+                <textarea
+                  value={mentorFormState.bio}
+                  onChange={(e) => setMentorFormState((prev) => ({ ...prev, bio: e.target.value }))}
+                  className="w-full min-h-[120px] rounded-3xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                  placeholder="Describe your mentorship approach and experience"
+                />
+              </label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="space-y-2 text-sm text-zinc-300">
+                  Skills
+                  <input
+                    value={mentorFormState.skills}
+                    onChange={(e) => setMentorFormState((prev) => ({ ...prev, skills: e.target.value }))}
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                    placeholder="Comma separated skills"
+                  />
+                </label>
+                <label className="space-y-2 text-sm text-zinc-300">
+                  Expertise
+                  <input
+                    value={mentorFormState.expertise}
+                    onChange={(e) => setMentorFormState((prev) => ({ ...prev, expertise: e.target.value }))}
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                    placeholder="Comma separated areas of expertise"
+                  />
+                </label>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="space-y-2 text-sm text-zinc-300">
+                  WhatsApp Number
+                  <input
+                    value={mentorFormState.whatsapp_number}
+                    onChange={(e) => setMentorFormState((prev) => ({ ...prev, whatsapp_number: e.target.value }))}
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                    placeholder="+1234567890"
+                  />
+                </label>
+                <label className="space-y-2 text-sm text-zinc-300">
+                  LinkedIn URL
+                  <input
+                    value={mentorFormState.linkedin_url}
+                    onChange={(e) => setMentorFormState((prev) => ({ ...prev, linkedin_url: e.target.value }))}
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                    placeholder="https://linkedin.com/..."
+                  />
+                </label>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="space-y-2 text-sm text-zinc-300">
+                  GitHub URL
+                  <input
+                    value={mentorFormState.github_url}
+                    onChange={(e) => setMentorFormState((prev) => ({ ...prev, github_url: e.target.value }))}
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                    placeholder="https://github.com/..."
+                  />
+                </label>
+                <label className="space-y-2 text-sm text-zinc-300">
+                  Portfolio URL
+                  <input
+                    value={mentorFormState.portfolio_url}
+                    onChange={(e) => setMentorFormState((prev) => ({ ...prev, portfolio_url: e.target.value }))}
+                    className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                    placeholder="https://yourportfolio.com"
+                  />
+                </label>
+              </div>
+              <label className="space-y-2 text-sm text-zinc-300">
+                Open To
+                <input
+                  value={mentorFormState.open_to.join(", ")}
+                  onChange={(e) => setMentorFormState((prev) => ({ ...prev, open_to: e.target.value.split(",").map((item) => item.trim()).filter(Boolean) }))}
+                  className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-sky-500"
+                  placeholder="Mentoring, Coaching, Project Review"
+                />
+              </label>
+              <div className="flex items-center justify-end gap-3 pt-3">
+                <Button variant="secondary" type="button" onClick={() => setIsMentorFormOpen(false)}>Cancel</Button>
+                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save Mentor Profile"}</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
