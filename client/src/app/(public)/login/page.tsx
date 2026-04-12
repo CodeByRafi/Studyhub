@@ -6,6 +6,7 @@ import Link from "next/link";
 import AuthCard from "@/components/ui/AuthCard";
 import AuthInput from "@/components/ui/AuthInput";
 import AuthButton from "@/components/ui/AuthButton";
+import { API_URL } from "@/services/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,14 +47,19 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
       });
 
-      const data = await response.json();
+      let data: any = null;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        const text = await response.text();
+        data = { message: text || 'Unable to parse server response.' };
+      }
 
       if (!response.ok || !data.success) {
         setError(data.message || "Invalid email or password. Please check your credentials.");

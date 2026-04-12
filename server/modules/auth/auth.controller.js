@@ -1,3 +1,4 @@
+const pool = require('../../config/db');
 const { signup, login } = require('./auth.service');
 
 // Signup controller
@@ -5,12 +6,23 @@ const signupController = async (req, res) => {
   try {
     const { email, password, firstName, lastName, department, departmentId } = req.body;
 
-    // Map department (name) to departmentId if needed, 
-    // or just use departmentId if provided.
-    // For now, we assume frontend might send name under 'department'
-    const finalDepartmentId = departmentId || (department ? null : undefined); 
-    // Note: A more robust fix would look up the ID by name, 
-    // but we'll stick to preventing crashes first.
+    let finalDepartmentId = departmentId || null;
+
+    if (!finalDepartmentId && department) {
+      try {
+        const departmentResult = await pool.query(
+          'SELECT id FROM departments WHERE LOWER(name) = LOWER($1)',
+          [department]
+        );
+
+        if (departmentResult.rows.length > 0) {
+          finalDepartmentId = departmentResult.rows[0].id;
+        }
+      } catch (lookupError) {
+        console.warn('Department lookup failed, proceeding without department:', lookupError.message);
+        finalDepartmentId = null;
+      }
+    }
 
     // Validate input
     if (!email || !password) {

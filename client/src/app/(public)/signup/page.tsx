@@ -6,6 +6,7 @@ import Link from "next/link";
 import AuthCard from "@/components/ui/AuthCard";
 import AuthInput from "@/components/ui/AuthInput";
 import AuthButton from "@/components/ui/AuthButton";
+import { API_URL } from "@/services/api";
 
 const getPasswordStrength = (password: string) => {
   if (password.length > 11 && /[A-Z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password)) {
@@ -89,7 +90,6 @@ export default function SignupPage() {
     const lastName = rest.join(" ") || "";
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
       const response = await fetch(`${API_URL}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

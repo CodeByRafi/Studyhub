@@ -32,7 +32,7 @@ async function setupDatabase() {
       console.log(`✅ Database "${process.env.DB_NAME}" already exists!`);
     }
 
-    // Now connect to the studyhub database and run schema
+    // Now connect to the studyhub database and run schema + migrations
     const dbPool = new Pool({
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
@@ -44,6 +44,17 @@ async function setupDatabase() {
     console.log('🔄 Running schema...');
     await dbPool.query(schema);
     console.log('✅ Schema created successfully!');
+
+    const migrationFiles = fs.readdirSync('./db')
+      .filter((file) => file.endsWith('.sql') && file !== 'schema.sql')
+      .sort();
+
+    for (const migrationFile of migrationFiles) {
+      console.log(`🔄 Applying migration: ${migrationFile}`);
+      const migrationSql = fs.readFileSync(`./db/${migrationFile}`, 'utf8');
+      await dbPool.query(migrationSql);
+      console.log(`✅ Migration applied: ${migrationFile}`);
+    }
 
     await dbPool.end();
     await adminPool.end();

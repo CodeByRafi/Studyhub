@@ -20,6 +20,9 @@ export async function getNetworkingProfileByUserId(userId: string) {
   try {
     const response = await fetch(`${API_URL}/api/networking/${userId}`);
     if (!response.ok) {
+      if (response.status === 404) {
+        return null;
+      }
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || `Server error: ${response.status}`);
     }
