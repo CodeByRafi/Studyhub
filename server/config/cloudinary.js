@@ -1,0 +1,51 @@
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+/**
+ * Cloudinary Configuration
+ * Used for cloud file storage in production.
+ * Falls back gracefully if env vars are not set.
+ */
+
+const isCloudinaryConfigured = !!(
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET
+);
+
+if (isCloudinaryConfigured) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+  console.log('☁️  Cloudinary configured successfully');
+}
+
+// Storage for documents (PDF, DOC, DOCX)
+const documentStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'studyhub/documents',
+    resource_type: 'raw', // Required for non-image files (PDF, DOCX)
+    allowed_formats: ['pdf', 'doc', 'docx'],
+  },
+});
+
+// Storage for profile images (JPEG, PNG, WEBP)
+const imageStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'studyhub/profiles',
+    resource_type: 'image',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 500, height: 500, crop: 'limit', quality: 'auto' }],
+  },
+});
+
+module.exports = {
+  cloudinary,
+  documentStorage,
+  imageStorage,
+  isCloudinaryConfigured,
+};
